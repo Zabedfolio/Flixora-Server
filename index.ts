@@ -1,7 +1,9 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
+import dotenv from "dotenv";
+import express, { Request, Response } from "express";
+import cors from "cors";
+import mongoose from "mongoose";
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,10 +19,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Basic Health Check Route (no APIs created, per request)
-app.get("/", (req, res) => {
+app.get("/", (req: Request, res: Response) => {
   res.status(200).json({
     status: "success",
-    message: "Flixora Server is running smoothly",
+    message: "Flixora Server is running smoothly with TypeScript",
     timestamp: new Date().toISOString()
   });
 });
@@ -34,7 +36,8 @@ mongoose.connect(MONGODB_URI)
     });
   })
   .catch((error) => {
-    console.error("🔴 MongoDB connection error:", error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("🔴 MongoDB connection error:", errorMessage);
     console.log("⚠️ Server startup paused due to database connection error.");
   });
 
