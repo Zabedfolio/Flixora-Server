@@ -2,6 +2,7 @@ import 'dotenv/config';
 
 import express from 'express';
 import connectDB from './database/db';
+import { searchMovie } from './services/tmdb.services';
 
 const app = express();
 
