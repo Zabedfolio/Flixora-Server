@@ -1,6 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 import Config from "../config/config";
 
+import {
+  searchMovie,
+  getSimilarMovies,
+} from "./tmdb.services";
+
 const movieTools = [
   {
     functionDeclarations: [
@@ -8,7 +13,7 @@ const movieTools = [
         name: "searchMovie",
 
         description:
-          "Search for movies from TMDB by title.",
+          "Search movies from TMDB by movie title.",
 
         parameters: {
           type: "OBJECT",
@@ -16,7 +21,7 @@ const movieTools = [
           properties: {
             query: {
               type: "STRING",
-              description: "Movie title",
+              description: "The movie title to search for.",
             },
           },
 
@@ -36,7 +41,8 @@ const movieTools = [
           properties: {
             movieId: {
               type: "NUMBER",
-              description: "TMDB movie ID",
+              description:
+                "The TMDB ID of the movie.",
             },
           },
 
@@ -46,6 +52,7 @@ const movieTools = [
     ],
   },
 ];
+
 const systemInstruction = `
 You are Flixora AI, an intelligent movie recommendation assistant.
 
@@ -55,15 +62,17 @@ Rules:
 
 1. Never invent movie information.
 2. Never invent TMDB IDs.
-3. Use TMDB tools whenever actual movie data is required.
-4. If the user asks for a specific movie, search TMDB first.
-5. If the user asks for similar movies, use the similar movie tool.
-6. If the user provides filters such as genre, year, rating, runtime or language,
-   use the appropriate TMDB search/discovery tool.
-7. Recommend movies based on the user's request.
-8. Explain briefly why each movie matches.
-9. Keep the response friendly and concise.
+3. Always use TMDB tools when real movie information is required.
+4. If the user mentions a movie title, use searchMovie first.
+5. If the user asks for movies similar to a movie,
+   first find the movie using searchMovie,
+   then use getSimilarMovies.
+6. Only recommend movies returned by TMDB.
+7. Give a short reason for each recommendation.
+8. Be friendly and concise.
+9. If you cannot find a movie, clearly tell the user.
 `;
+
 const genAI = new GoogleGenAI({
   apiKey: Config.GOOGLE_GEMINI_KEY,
 });
@@ -72,7 +81,6 @@ async function generateContent(prompt: string) {
 
   const result = await genAI.models.generateContent({
     model: "gemini-3.5-flash",
-
     contents: prompt,
 
     config: {
@@ -83,6 +91,27 @@ async function generateContent(prompt: string) {
 
   return result;
 }
+
+
+async function executeTool(
+  name: string,
+  args: any
+) {
+  switch (name) {
+
+    case "searchMovie":
+      return await searchMovie(args.query);
+
+    case "getSimilarMovies":
+      return await getSimilarMovies(args.movieId);
+
+    default:
+      throw new Error(
+        `Unknown tool: ${name}`
+      );
+  }
+}
+
 
 
 
