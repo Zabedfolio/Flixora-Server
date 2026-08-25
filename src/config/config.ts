@@ -10,16 +10,22 @@ if (!process.env.TMDB_ACCESS_TOKEN)
 {
     throw new Error ('TMDB_ACCESS_TOKEN not define')
 }
+if (!process.env.GOOGLE_GEMINI_KEY)
+{
+    throw new Error ('GOOGLE_GEMINI_KEY not define')
+}
 
 interface config {
     MONGODB_URI: string,
     TMDB_ACCESS_TOKEN: string,
+    GOOGLE_GEMINI_KEY:string,
 }
 
 
 const Config:config = {
     MONGODB_URI: process.env.MONGODB_URI,
     TMDB_ACCESS_TOKEN: process.env.TMDB_ACCESS_TOKEN,
+    GOOGLE_GEMINI_KEY: process.env.GOOGLE_GEMINI_KEY
 }
 
 export default Config
