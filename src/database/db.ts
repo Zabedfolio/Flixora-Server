@@ -1,12 +1,9 @@
 import mongoose from 'mongoose';
+import Config from '../config/config';
 
 const connectDB = async (): Promise<void> => {
   try {
-    const mongoURI = process.env.MONGO_DB_URI;
-
-    if (!mongoURI) {
-      throw new Error('MONGO_DB_URI is not defined in .env');
-    }
+    const mongoURI = Config.MONGODB_URI;
 
     await mongoose.connect(mongoURI);
 
