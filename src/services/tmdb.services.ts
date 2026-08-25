@@ -20,6 +20,7 @@ export const searchMovie = async (query: string) => {
     },
   });
   let store =  data.results.slice(0, 10);
+  console.log(store);
   return store
 };
 
