@@ -85,20 +85,32 @@ async function generateContent(prompt: string) {
   return result;
 }
 
-async function executeTool(name: string, args: any) {
+async function executeTool(
+  name: string,
+  args: any
+) {
   switch (name) {
+
     case "searchMovie":
-      return await searchMovie(args.query);
+      return await searchMovie(
+        args.query
+      );
 
     case "getSimilarMovies":
-      return await getSimilarMovies(args.movieId);
+      return await getSimilarMovies(
+        args.movieId
+      );
 
     default:
-      throw new Error(`Unknown tool: ${name}`);
+      throw new Error(
+        `Unknown function: ${name}`
+      );
   }
 }
 
-export async function generateMovieResponse(prompt: string) {
+export async function generateMovieResponse(
+  prompt: string
+) {
   try {
     let contents: any[] = [
       {
@@ -112,20 +124,48 @@ export async function generateMovieResponse(prompt: string) {
     ];
 
     while (true) {
-      const response = await genAI.models.generateContent({
-        model: "gemini-3.5-flash",
+      const response =
+        await genAI.models.generateContent({
+          model: "gemini-3.5-flash",
 
-        contents,
+          contents,
 
-        config: {
-          systemInstruction,
-          tools: movieTools,
-        },
+          config: {
+            systemInstruction,
+            tools: movieTools,
+          },
+        });
+
+      const modelParts =
+        response.candidates?.[0]?.content?.parts;
+
+      if (!modelParts) {
+        throw new Error(
+          "Gemini returned no response parts"
+        );
+      }
+
+      /*
+       * IMPORTANT:
+       * exactly original model response preserve 
+       *
+       * do not recreate functionCall manually 
+       */
+      contents.push({
+        role: "model",
+        parts: modelParts,
       });
 
-      const functionCalls = response.functionCalls;
+      /*
+       * Gemini  function call
+       */
+      const functionCalls =
+        response.functionCalls;
 
-      // Gemini যদি কোনো function call না করে
+      /*
+       * Due to leak of function call
+       * This is the final response.
+       */
       if (!functionCalls?.length) {
         return {
           message: response.text || "",
@@ -133,29 +173,31 @@ export async function generateMovieResponse(prompt: string) {
         };
       }
 
-      // Gemini যে function call করেছে
+      /*
+       * execute every function 
+       */
       for (const call of functionCalls) {
-        console.log("Gemini Tool Call:", call.name, call.args);
+        console.log(
+          "Gemini Function Call:",
+          call.name,
+          call.args
+        );
 
-        const toolResult = await executeTool(call.name!, call.args);
+        const toolResult =
+          await executeTool(
+            call.name!,
+            call.args
+          );
 
-        console.log("TMDB Tool Result:", toolResult);
+        console.log(
+          "TMDB Result:",
+          toolResult
+        );
 
-        // Gemini-এর conversation-এ
-        // আগের model response যোগ করছি
-        contents.push({
-          role: "model",
-          parts: [
-            {
-              functionCall: {
-                name: call.name,
-                args: call.args, 
-              },
-            },
-          ],
-        });
-
-        // function result return to the gemini 1.Insertion 
+        /*
+         * Function result returned to the gemini 
+         * Return to the function
+         */
         contents.push({
           role: "user",
           parts: [
@@ -170,11 +212,12 @@ export async function generateMovieResponse(prompt: string) {
           ],
         });
       }
-
-      // loop again Gemini call
     }
-  } catch (error: any) {
-    console.error("Gemini Movie AI Error:", error);
+  } catch (error) {
+    console.error(
+      "Gemini Movie AI Error:",
+      error
+    );
 
     throw error;
   }
