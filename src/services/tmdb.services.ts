@@ -18,7 +18,7 @@ export const searchMovie = async (query: string) => {
       language: "en-US",
     },
   });
-
+  console.log(data);
   return data.results.slice(0, 10);
 };
 

@@ -5,7 +5,6 @@ if (!process.env.MONGODB_URI)
 {
     throw new Error ('Mongodb URI not define...')
 }
-
 if (!process.env.TMDB_ACCESS_TOKEN)
 {
     throw new Error ('TMDB_ACCESS_TOKEN not define')
