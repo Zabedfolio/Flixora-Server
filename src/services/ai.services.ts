@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, Schema } from "@google/genai";
 import Config from "../config/config";
 
 import { searchMovie, getSimilarMovies } from "./tmdb.services";
@@ -71,46 +71,20 @@ const genAI = new GoogleGenAI({
   apiKey: Config.GOOGLE_GEMINI_KEY,
 });
 
-async function generateContent(prompt: string) {
-  const result = await genAI.models.generateContent({
-    model: "gemini-3.5-flash",
-    contents: prompt,
-
-    config: {
-      systemInstruction,
-      tools: movieTools,
-    },
-  });
-
-  return result;
-}
-
-async function executeTool(
-  name: string,
-  args: any
-) {
+async function executeTool(name: string, args: any) {
   switch (name) {
-
     case "searchMovie":
-      return await searchMovie(
-        args.query
-      );
+      return await searchMovie(args.query);
 
     case "getSimilarMovies":
-      return await getSimilarMovies(
-        args.movieId
-      );
+      return await getSimilarMovies(args.movieId);
 
     default:
-      throw new Error(
-        `Unknown function: ${name}`
-      );
+      throw new Error(`Unknown function: ${name}`);
   }
 }
 
-export async function generateMovieResponse(
-  prompt: string
-) {
+export async function generateMovieResponse(prompt: string) {
   try {
     let contents: any[] = [
       {
@@ -124,32 +98,27 @@ export async function generateMovieResponse(
     ];
 
     while (true) {
-      const response =
-        await genAI.models.generateContent({
-          model: "gemini-3.5-flash",
+      const response = await genAI.models.generateContent({
+        model: "gemini-3.5-flash",
 
-          contents,
+        contents,
 
-          config: {
-            systemInstruction,
-            tools: movieTools,
-          },
-        });
+        config: {
+          systemInstruction,
+          tools: movieTools,
+        },
+      });
 
-      const modelParts =
-        response.candidates?.[0]?.content?.parts;
+      const modelParts = response.candidates?.[0]?.content?.parts;
 
       if (!modelParts) {
-        throw new Error(
-          "Gemini returned no response parts"
-        );
+        throw new Error("Gemini returned no response parts");
       }
 
       /*
        * IMPORTANT:
-       * exactly original model response preserve 
-       *
-       * do not recreate functionCall manually 
+       * exactly original model response preserve
+       * do not recreate functionCall manually
        */
       contents.push({
         role: "model",
@@ -159,8 +128,7 @@ export async function generateMovieResponse(
       /*
        * Gemini  function call
        */
-      const functionCalls =
-        response.functionCalls;
+      const functionCalls = response.functionCalls;
 
       /*
        * Due to leak of function call
@@ -169,33 +137,22 @@ export async function generateMovieResponse(
       if (!functionCalls?.length) {
         return {
           message: response.text || "",
-          movies: [],
+          movies: functionCalls,
         };
       }
 
       /*
-       * execute every function 
+       * execute every function
        */
       for (const call of functionCalls) {
-        console.log(
-          "Gemini Function Call:",
-          call.name,
-          call.args
-        );
+        console.log("Gemini Function Call:", call.name, call.args);
 
-        const toolResult =
-          await executeTool(
-            call.name!,
-            call.args
-          );
+        const toolResult = await executeTool(call.name!, call.args);
 
-        console.log(
-          "TMDB Result:",
-          toolResult
-        );
+        console.log("TMDB Result:", toolResult);
 
         /*
-         * Function result returned to the gemini 
+         * Function result returned to the gemini
          * Return to the function
          */
         contents.push({
@@ -214,11 +171,41 @@ export async function generateMovieResponse(
       }
     }
   } catch (error) {
-    console.error(
-      "Gemini Movie AI Error:",
-      error
-    );
+    console.error("Gemini Movie AI Error:", error);
 
     throw error;
   }
+}
+
+export async function getSearchKeywords(userPrompt: string) {
+  // Format of the AI answer 
+  const responseSchema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+      searchQuery: {
+        type: Type.STRING,
+        description: "Main movie title or search phrase extracted from prompt",
+      },
+      genres: {
+        type: Type.ARRAY,
+        items: { type: Type.STRING },
+        description: "List of genres associated with the request",
+      },
+    },
+    required: ["searchQuery"],
+  };
+
+  const response = await genAI.models.generateContent({
+    model: "gemini-3.5-flash",
+    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+    config: {
+      systemInstruction:
+        "You are a keyword extractor for a movie search engine. Extract the core movie title, topic, or search query.",
+      responseMimeType: "application/json",
+      responseSchema: responseSchema,
+    },
+  });
+
+  // Response AI just a little JSON { "searchQuery": "Interstellar", "genres": ["sci-fi"] }
+  return JSON.parse(response.text || "{}");
 }
