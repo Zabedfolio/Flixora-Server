@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { searchMovieWithQueary } from "../controllers/ai.controller";
+import {
+  movieAssistant,
+  searchMovieWithQueary,
+} from "../controllers/ai.controller";
 
+const router = Router();
 
-const router = Router()
+router.get("/search/movie", searchMovieWithQueary);
+router.post("/ai/chat", movieAssistant);
 
-router.get('/search/movie', searchMovieWithQueary)
-
-
-export default router
-
+export default router;
