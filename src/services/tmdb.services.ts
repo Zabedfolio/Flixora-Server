@@ -1,7 +1,6 @@
 import axios from "axios";
 import Config from "../config/config";
 
-// create tmdb instance
 const tmdb = axios.create({
   baseURL: "https://api.themoviedb.org/3",
   headers: {
@@ -10,7 +9,7 @@ const tmdb = axios.create({
   },
 });
 
-// search movie
+// Search movie
 export const searchMovie = async (query: string) => {
   const { data } = await tmdb.get("/search/movie", {
     params: {
@@ -19,18 +18,20 @@ export const searchMovie = async (query: string) => {
       language: "en-US",
     },
   });
-  let store =  data.results.slice(0, 10);
-  console.log(store);
-  return store
+  console.log(data);
+  return data.results.slice(0, 10);
 };
 
-// similar movie
+// Similar movies
 export const getSimilarMovies = async (movieId: number) => {
-  const { data } = await tmdb.get(`/movie/${movieId}/recommendations`, {
-    params: {
-      language: "en-US",
-    },
-  });
+  const { data } = await tmdb.get(
+    `/movie/${movieId}/recommendations`,
+    {
+      params: {
+        language: "en-US",
+      },
+    }
+  );
 
   return data.results.slice(0, 10);
 };
