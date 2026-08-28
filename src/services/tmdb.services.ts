@@ -14,12 +14,13 @@ export const searchMovie = async (query: string) => {
   const { data } = await tmdb.get("/search/movie", {
     params: {
       query,
-      include_adult: false,
+      include_adult: true,
       language: "en-US",
     },
   });
-  console.log(data);
-  return data.results.slice(0, 10);
+
+  // return data.results.slice(0, 10);
+  return data
 };
 
 // Similar movies
@@ -33,5 +34,6 @@ export const getSimilarMovies = async (movieId: number) => {
     }
   );
 
-  return data.results.slice(0, 10);
+  // return data.results.slice(0, 10);
+  return data;
 };

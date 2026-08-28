@@ -47,26 +47,6 @@ const movieTools = [
   },
 ] as const;
 
-const systemInstruction = `
-You are Flixora AI, an intelligent movie recommendation assistant.
-
-Your job is to help users discover movies.
-
-Rules:
-
-1. Never invent movie information.
-2. Never invent TMDB IDs.
-3. Always use TMDB tools when real movie information is required.
-4. If the user mentions a movie title, use searchMovie first.
-5. If the user asks for movies similar to a movie,
-   first find the movie using searchMovie,
-   then use getSimilarMovies.
-6. Only recommend movies returned by TMDB.
-7. Give a short reason for each recommendation.
-8. Be friendly and concise.
-9. If you cannot find a movie, clearly tell the user.
-`;
-
 const genAI = new GoogleGenAI({
   apiKey: Config.GOOGLE_GEMINI_KEY,
 });
@@ -178,7 +158,7 @@ export async function generateMovieResponse(prompt: string) {
 }
 
 export async function getSearchKeywords(userPrompt: string) {
-  // Format of the AI answer 
+  // Format of the AI answer
   const responseSchema: Schema = {
     type: Type.OBJECT,
     properties: {
@@ -205,6 +185,12 @@ export async function getSearchKeywords(userPrompt: string) {
       responseSchema: responseSchema,
     },
   });
+  console.log("Usage:");
+  console.log(response.usageMetadata);
+
+  console.log("Prompt tokens:", response.usageMetadata?.promptTokenCount);
+
+  console.log("Output tokens:", response.usageMetadata?.candidatesTokenCount);
 
   // Response AI just a little JSON { "searchQuery": "Interstellar", "genres": ["sci-fi"] }
   return JSON.parse(response.text || "{}");
