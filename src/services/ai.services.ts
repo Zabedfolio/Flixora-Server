@@ -1,211 +1,97 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import Config from "../config/config";
-
-import { searchMovie, getSimilarMovies } from "./tmdb.services";
-
-const movieTools = [
-  {
-    functionDeclarations: [
-      {
-        name: "searchMovie",
-
-        description: "Search movies from TMDB by movie title.",
-
-        parameters: {
-          type: Type.OBJECT,
-
-          properties: {
-            query: {
-              type: Type.STRING,
-              description: "The movie title to search for.",
-            },
-          },
-
-          required: ["query"],
-        },
-      },
-
-      {
-        name: "getSimilarMovies",
-
-        description: "Get movies similar to a specific TMDB movie.",
-
-        parameters: {
-          type: Type.OBJECT,
-
-          properties: {
-            movieId: {
-              type: Type.NUMBER,
-              description: "The TMDB ID of the movie.",
-            },
-          },
-
-          required: ["movieId"],
-        },
-      },
-    ],
-  },
-] as const;
-
-const systemInstruction = `
-You are Flixora AI, an intelligent movie recommendation assistant.
-
-Your job is to help users discover movies.
-
-Rules:
-
-1. Never invent movie information.
-2. Never invent TMDB IDs.
-3. Always use TMDB tools when real movie information is required.
-4. If the user mentions a movie title, use searchMovie first.
-5. If the user asks for movies similar to a movie,
-   first find the movie using searchMovie,
-   then use getSimilarMovies.
-6. Only recommend movies returned by TMDB.
-7. Give a short reason for each recommendation.
-8. Be friendly and concise.
-9. If you cannot find a movie, clearly tell the user.
-`;
 
 const genAI = new GoogleGenAI({
   apiKey: Config.GOOGLE_GEMINI_KEY,
 });
 
-async function executeTool(name: string, args: any) {
-  switch (name) {
-    case "searchMovie":
-      return await searchMovie(args.query);
+/* =========================================
+   SYSTEM INSTRUCTION
+========================================= */
+const systemInstruction = `
+Analyze the user's movie request and return relevant TMDB filters.
+Treat emotions like sad, happy, lonely, or exciting as mood, not genres.
+Choose relevant genres and keywords based on the user's intent.
+Do not invent unrelated filters.
+`;
 
-    case "getSimilarMovies":
-      return await getSimilarMovies(args.movieId);
+/* =========================================
+   RESPONSE SCHEMA
+========================================= */
 
-    default:
-      throw new Error(`Unknown function: ${name}`);
-  }
-}
+const responseSchema = {
+  type: Type.OBJECT,
 
-export async function generateMovieResponse(prompt: string) {
-  try {
-    let contents: any[] = [
-      {
-        role: "user",
-        parts: [
-          {
-            text: prompt,
-          },
-        ],
+  properties: {
+    mood: {
+      type: Type.STRING,
+      description:
+        "The user's emotional intent, such as sad, happy, lonely, exciting, relaxing.",
+    },
+
+    genres: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.STRING,
       },
-    ];
+      description:
+        "Relevant TMDB movie genres such as drama, romance, comedy, thriller, horror, science fiction.",
+    },
 
-    while (true) {
-      const response = await genAI.models.generateContent({
-        model: "gemini-3.5-flash",
+    keywords: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.STRING,
+      },
+      description:
+        "Useful movie-related concepts or themes. Avoid using emotions alone as keywords.",
+    },
 
-        contents,
+    year: {
+      type: Type.INTEGER,
+      description:
+        "Specific release year if the user mentions one. Otherwise do not provide it.",
+    },
+  },
 
-        config: {
-          systemInstruction,
-          tools: movieTools,
-        },
-      });
+  required: ["mood", "genres", "keywords"],
+};
 
-      const modelParts = response.candidates?.[0]?.content?.parts;
 
-      if (!modelParts) {
-        throw new Error("Gemini returned no response parts");
-      }
+/* =========================================
+   GEMINI MOVIE FILTER GENERATOR
+========================================= */
 
-      /*
-       * IMPORTANT:
-       * exactly original model response preserve
-       * do not recreate functionCall manually
-       */
-      contents.push({
-        role: "model",
-        parts: modelParts,
-      });
+export const generateMovieFilters = async (prompt: string) => {
+  try {
+    const response = await genAI.models.generateContent({
+      model: "gemini-3.5-flash",
 
-      /*
-       * Gemini  function call
-       */
-      const functionCalls = response.functionCalls;
-
-      /*
-       * Due to leak of function call
-       * This is the final response.
-       */
-      if (!functionCalls?.length) {
-        return {
-          message: response.text || "",
-          movies: functionCalls,
-        };
-      }
-
-      /*
-       * execute every function
-       */
-      for (const call of functionCalls) {
-        console.log("Gemini Function Call:", call.name, call.args);
-
-        const toolResult = await executeTool(call.name!, call.args);
-
-        console.log("TMDB Result:", toolResult);
-
-        /*
-         * Function result returned to the gemini
-         * Return to the function
-         */
-        contents.push({
+      contents: [
+        {
           role: "user",
           parts: [
             {
-              functionResponse: {
-                name: call.name,
-                response: {
-                  result: toolResult,
-                },
-              },
+              text: prompt,
             },
           ],
-        });
-      }
-    }
-  } catch (error) {
+        },
+      ],
+
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema,
+      },
+    });
+
+    console.log("Gemini Usage:", response.usageMetadata);
+
+    return JSON.parse(response.text || "{}");
+
+  } catch (error: any) {
     console.error("Gemini Movie AI Error:", error);
 
     throw error;
   }
-}
-
-export async function getSearchKeywords(userPrompt: string) {
-  // Format of the AI answer 
-  const responseSchema: Schema = {
-    type: Type.OBJECT,
-    properties: {
-      searchQuery: {
-        type: Type.STRING,
-        description: "Main movie title or search phrase extracted from prompt",
-      },
-      genres: {
-        type: Type.ARRAY,
-        items: { type: Type.STRING },
-        description: "List of genres associated with the request",
-      },
-    },
-    required: ["searchQuery"],
-  };
-
-  const response = await genAI.models.generateContent({
-    model: "gemini-3.5-flash",
-    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-    config: {
-      systemInstruction:
-        "You are a keyword extractor for a movie search engine. Extract the core movie title, topic, or search query.",
-      responseMimeType: "application/json",
-      responseSchema: responseSchema,
-    },
-  });
-
-  // Response AI just a little JSON { "searchQuery": "Interstellar", "genres": ["sci-fi"] }
-  return JSON.parse(response.text || "{}");
-}
+};
