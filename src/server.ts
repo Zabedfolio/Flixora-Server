@@ -4,7 +4,8 @@ import express from 'express';
 import connectDB from './database/db';
 import router from './routers/ai.router';
 import profileRouter from './routers/profile.router';
-import cors from 'cors'
+import planRoute from './routers/plan.route';
+import cors from 'cors';
 
 const app = express();
 
@@ -14,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json({ limit: '10mb' }));
 
 // Allow all origin
-app.use(cors())
+app.use(cors());
 
 connectDB();
 
@@ -22,9 +23,10 @@ app.get('/', (_req, res) => {
   res.send('Flixora Server is running 🚀');
 });
 
-// routers API 
+// routers API
 app.use('/api', router);
 app.use('/api', profileRouter);
+app.use('/api/plans', planRoute);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
