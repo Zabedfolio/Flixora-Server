@@ -11,7 +11,7 @@ if (!process.env.TMDB_ACCESS_TOKEN)
 }
 if (!process.env.GOOGLE_GEMINI_KEY)
 {
-    throw new Error ('GOOGLE_GEMINI_KEY not define')
+    console.warn('⚠️ WARNING: GOOGLE_GEMINI_KEY not defined in environment. AI features will be unavailable.');
 }
 if (!process.env.TMDB_API_KEY)
 {
@@ -29,7 +29,7 @@ interface config {
 const Config:config = {
     MONGODB_URI: process.env.MONGODB_URI,
     TMDB_ACCESS_TOKEN: process.env.TMDB_ACCESS_TOKEN,
-    GOOGLE_GEMINI_KEY: process.env.GOOGLE_GEMINI_KEY,
+    GOOGLE_GEMINI_KEY: process.env.GOOGLE_GEMINI_KEY || '',
     TMDB_API_KEY : process.env.TMDB_API_KEY
 }
 
