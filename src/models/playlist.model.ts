@@ -11,7 +11,9 @@ export interface IPlaylistMovie {
 }
 
 export interface IPlaylist extends Document {
-  userId: string;
+  userId?: string;
+  userIds?: string[];
+  isPreCreated?: boolean;
   name: string;
   tag?: string;
   description?: string;
@@ -32,7 +34,9 @@ const PlaylistMovieSchema: Schema = new Schema({
 }, { _id: false });
 
 const PlaylistSchema: Schema = new Schema({
-  userId: { type: String, required: true, index: true },
+  userId: { type: String, index: true },
+  userIds: { type: [String], default: [], index: true },
+  isPreCreated: { type: Boolean, default: false, index: true },
   name: { type: String, required: true },
   tag: { type: String, default: 'Custom' },
   description: { type: String, default: '' },
