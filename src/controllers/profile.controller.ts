@@ -111,7 +111,6 @@ export const uploadAvatar = async (req: Request, res: Response): Promise<void> =
       res.status(500).json({ error: 'Failed to receive image URL from ImgBB' });
       return;
     }
-
     res.status(200).json({ url: finalUrl });
   } catch (error: any) {
     console.error('Error uploading image to ImgBB:', error.message);
