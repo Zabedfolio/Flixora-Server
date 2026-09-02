@@ -93,7 +93,7 @@ const analyzeUserActivity = async (activity: any) => {
       responseSchema,
 
       thinkingConfig: {
-        thinkingLevel: "minimal",
+        thinkingLevel: "minimal" as any,
       },
     },
   });
