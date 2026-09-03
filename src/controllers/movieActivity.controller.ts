@@ -5,7 +5,6 @@ export const addWatchedMovie = async (req: Request, res: Response): Promise<Resp
   try {
     const { userId, genres } = req.body;
 
-    // ইউজার আইডি ভ্যালিডেশন
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -13,7 +12,6 @@ export const addWatchedMovie = async (req: Request, res: Response): Promise<Resp
       });
     }
 
-    // জেনরা/মুভি টাইপ অ্যারে ভ্যালিডেশন
     if (!genres || !Array.isArray(genres) || genres.length === 0) {
       return res.status(400).json({
         success: false,
@@ -21,7 +19,6 @@ export const addWatchedMovie = async (req: Request, res: Response): Promise<Resp
       });
     }
 
-    // $addToSet এবং $each ডাটাবেজ লেভেলেই ডুপ্লিকেট জেনরা ফিল্টার করে ঢুকাবে
     const activity = await MovieActivity.findOneAndUpdate(
       { userId: userId },
       {
@@ -37,7 +34,7 @@ export const addWatchedMovie = async (req: Request, res: Response): Promise<Resp
       message: "Movie genres added to watch history successfully",
       data: activity,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Add Watched Movie Error:", error);
     return res.status(500).json({
       success: false,
