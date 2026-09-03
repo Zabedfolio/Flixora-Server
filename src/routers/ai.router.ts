@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { movieAssistant } from "../controllers/ai.controller";
+import { movieAssistant, getGenreRecommendations } from "../controllers/ai.controller";
 
 const router = Router();
 
@@ -10,4 +10,12 @@ const router = Router();
  */
 router.post("/ai/chat", movieAssistant);
 
+/**
+ * @route    /api/ai/recommendations
+ * @desc     Generate AI movie recommendations from watch history genres
+ * @access   public
+ */
+router.post("/ai/recommendations", getGenreRecommendations);
+
 export default router;
+

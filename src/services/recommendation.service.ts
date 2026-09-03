@@ -93,9 +93,15 @@ const analyzeUserActivity = async (activity: any) => {
       responseSchema,
 
       thinkingConfig: {
-        thinkingLevel: "minimal",
+        thinkingLevel: "minimal" as any,
       },
     },
+  });
+
+  console.log("📊 Gemini Token Usage (analyzeUserActivity):", {
+    promptTokens: response.usageMetadata?.promptTokenCount,
+    candidatesTokens: response.usageMetadata?.candidatesTokenCount,
+    totalTokens: response.usageMetadata?.totalTokenCount,
   });
 
   return JSON.parse(response.text || "{}");
@@ -160,6 +166,127 @@ const getMoviesFromTMDB = async (preferences: any, excludeIds: number[]) => {
   );
 
   return movies.sort(() => Math.random() - 0.5).slice(0, 10);
+};
+
+export const getAIRecommendationsFromGenres = async (userGenres: string[]) => {
+  const genresToAnalyze = Array.isArray(userGenres) && userGenres.length > 0
+    ? userGenres
+    : ["Action", "Sci-Fi", "Drama"];
+
+  const genreMap: Record<string, number> = {
+    action: 28,
+    adventure: 12,
+    animation: 16,
+    comedy: 35,
+    crime: 80,
+    documentary: 99,
+    drama: 18,
+    family: 10751,
+    fantasy: 14,
+    history: 36,
+    horror: 27,
+    music: 10402,
+    mystery: 9648,
+    romance: 10749,
+    "science fiction": 878,
+    scifi: 878,
+    thriller: 53,
+    war: 10752,
+    western: 37,
+  };
+
+  let aiResult = {
+    suggestedGenres: genresToAnalyze,
+    reason: `Based on your love for ${genresToAnalyze.slice(0, 3).join(", ")}`,
+    keywords: ["popular", "trending", "must-watch"]
+  };
+
+  if (Config.GOOGLE_GEMINI_KEY) {
+    try {
+      const prompt = `
+        The user has recently watched movies in these genres: ${genresToAnalyze.join(", ")}.
+        Analyze their movie taste preferences and recommend 3 to 4 complementary or exciting new genres/subgenres they will love next.
+        Also provide a short engaging reason title (under 10 words).
+      `;
+
+      const response = await genAI.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          systemInstruction: "You are an expert film recommendation engine. Return JSON matching the schema.",
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              suggestedGenres: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              },
+              reason: { type: Type.STRING },
+              keywords: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              }
+            },
+            required: ["suggestedGenres", "reason"]
+          }
+        }
+      });
+
+      console.log("📊 Gemini Token Usage (getAIRecommendationsFromGenres):", {
+        promptTokens: response.usageMetadata?.promptTokenCount,
+        candidatesTokens: response.usageMetadata?.candidatesTokenCount,
+        totalTokens: response.usageMetadata?.totalTokenCount,
+      });
+
+      if (response.text) {
+        const parsed = JSON.parse(response.text);
+        if (parsed.suggestedGenres && parsed.suggestedGenres.length > 0) {
+          aiResult = {
+            suggestedGenres: parsed.suggestedGenres,
+            reason: parsed.reason || aiResult.reason,
+            keywords: parsed.keywords || aiResult.keywords
+          };
+        }
+      }
+    } catch (err) {
+      console.warn("Gemini AI genre recommendation fallback:", err);
+    }
+  }
+
+  // Convert suggested genres to TMDB Genre IDs
+  const tmdbGenreIds = aiResult.suggestedGenres
+    .map(g => genreMap[g.toLowerCase().trim()])
+    .filter(Boolean);
+
+  const randomPage = Math.floor(Math.random() * 5) + 1;
+  const params = new URLSearchParams({
+    api_key: Config.TMDB_API_KEY,
+    language: "en-US",
+    sort_by: "popularity.desc",
+    include_adult: "false",
+    page: String(randomPage),
+    "vote_count.gte": "50"
+  });
+
+  if (tmdbGenreIds.length > 0) {
+    params.append("with_genres", tmdbGenreIds.join("|"));
+  }
+
+  const tmdbRes = await fetch(`https://api.themoviedb.org/3/discover/movie?${params}`);
+  if (!tmdbRes.ok) {
+    throw new Error(`TMDB Discover API Error: ${tmdbRes.statusText}`);
+  }
+
+  const data = await tmdbRes.json();
+  const movies = (data.results || []).sort(() => Math.random() - 0.5);
+
+  return {
+    reason: aiResult.reason,
+    suggestedGenres: aiResult.suggestedGenres,
+    keywords: aiResult.keywords,
+    movies: movies.slice(0, 12)
+  };
 };
 
 /* =========================================
@@ -242,3 +369,4 @@ export const createRecommendation = async (userId: string, activity: any) => {
 
   return recommendation;
 };
+
