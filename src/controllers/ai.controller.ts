@@ -27,7 +27,7 @@ const getPosterUrl = (path?: string) => {
 };
 
 // Helper to extract TMDB movies
-const extractTMDBMovies = (results: any[], count: number = 4) => {
+const extractTMDBMovies = (results: any[], count: number = 6) => {
   return (results || [])
     .filter((m: any) => m.media_type !== "person")
     .slice(0, count)
@@ -37,11 +37,18 @@ const extractTMDBMovies = (results: any[], count: number = 4) => {
       return {
         id: m.id.toString(),
         title: itemTitle,
+        original_title: m.original_title || m.original_name,
         year: itemDate ? new Date(itemDate).getFullYear() : 2026,
         rating: m.vote_average ? Number(m.vote_average.toFixed(1)) : 8.0,
-        genres: ["Featured"],
+        genres: m.genre_ids || ["Featured"],
         posterUrl: getPosterUrl(m.poster_path),
+        poster_path: m.poster_path ? getPosterUrl(m.poster_path) : null,
+        backdrop_path: m.backdrop_path ? `https://image.tmdb.org/t/p/w1280${m.backdrop_path}` : null,
         overview: m.overview || "",
+        vote_average: m.vote_average,
+        vote_count: m.vote_count,
+        release_date: m.release_date || m.first_air_date,
+        media_type: m.media_type || "movie",
       };
     });
 };
@@ -60,7 +67,7 @@ export const movieAssistant = async (
 
     const qLower = userMessage.toLowerCase();
     const countMatch = qLower.match(/\b([1-9]|10)\b/);
-    const requestedCount = countMatch ? Math.min(Math.max(parseInt(countMatch[1], 10), 1), 6) : 4;
+    const requestedCount = countMatch ? Math.min(Math.max(parseInt(countMatch[1], 10), 1), 10) : 6;
 
     let replyText = "";
     let movies: any[] | undefined = undefined;
@@ -169,48 +176,83 @@ export const movieAssistant = async (
       }
     }
 
-    // 4. Genre / Search Intent
+    // 4. Genre / Search Intent with dynamic TMDB with_genres tag matching
     if (!replyText) {
       let endpoint = "/trending/movie/day";
       let categoryName = "Popular";
       let emojiHeader = "🍿";
+      const params: Record<string, any> = { page: 1, sort_by: "popularity.desc" };
 
-      if (/sci[- ]?fi|science\s*fiction|scifi|space|alien|futuristic/i.test(qLower)) {
+      if (/sci[- ]?fi|science\s*fiction|scifi|space|alien|futuristic|cyberpunk/i.test(qLower)) {
         endpoint = "/discover/movie";
+        params.with_genres = "878";
         categoryName = "Sci-Fi";
         emojiHeader = "🚀";
-      } else if (/action|fight|superhero|explosive/i.test(qLower)) {
+      } else if (/action|fight|superhero|explosive|martial\s*arts/i.test(qLower)) {
         endpoint = "/discover/movie";
+        params.with_genres = "28";
         categoryName = "Action";
         emojiHeader = "⚡️";
-      } else if (/trending|popular|hits|top\s*rated/i.test(qLower)) {
+      } else if (/adventure|journey|expedition/i.test(qLower)) {
+        endpoint = "/discover/movie";
+        params.with_genres = "12";
+        categoryName = "Adventure";
+        emojiHeader = "🗺️";
+      } else if (/horror|scary|spooky|creepy|ghost|zombie|vampire|slasher/i.test(qLower)) {
+        endpoint = "/discover/movie";
+        params.with_genres = "27";
+        categoryName = "Horror";
+        emojiHeader = "👻";
+      } else if (/comedy|funny|hilarious|laugh|humor/i.test(qLower)) {
+        endpoint = "/discover/movie";
+        params.with_genres = "35";
+        categoryName = "Hilarious Comedy";
+        emojiHeader = "🍿";
+      } else if (/anime|animation|animated|cartoon/i.test(qLower)) {
+        endpoint = "/discover/movie";
+        params.with_genres = "16";
+        categoryName = "Animation & Anime";
+        emojiHeader = "✨";
+      } else if (/thriller|suspense|mystery|detective/i.test(qLower)) {
+        endpoint = "/discover/movie";
+        params.with_genres = "53";
+        categoryName = "Suspenseful Thriller";
+        emojiHeader = "🔍";
+      } else if (/crime|gangster|mafia|heist/i.test(qLower)) {
+        endpoint = "/discover/movie";
+        params.with_genres = "80";
+        categoryName = "Crime";
+        emojiHeader = "🕵️";
+      } else if (/romance|romantic|love\s*movie|date\s*night/i.test(qLower)) {
+        endpoint = "/discover/movie";
+        params.with_genres = "10749";
+        categoryName = "Romantic";
+        emojiHeader = "❤️";
+      } else if (/drama|emotional/i.test(qLower)) {
+        endpoint = "/discover/movie";
+        params.with_genres = "18";
+        categoryName = "Drama";
+        emojiHeader = "🎭";
+      } else if (/fantasy|magic|mythical/i.test(qLower)) {
+        endpoint = "/discover/movie";
+        params.with_genres = "14";
+        categoryName = "Fantasy";
+        emojiHeader = "⚔️";
+      } else if (/family|kids|children/i.test(qLower)) {
+        endpoint = "/discover/movie";
+        params.with_genres = "10751";
+        categoryName = "Family & Kids";
+        emojiHeader = "👨‍👩‍👧‍👦";
+      } else if (/trending|popular|hits|top\s*rated|blockbuster/i.test(qLower)) {
         endpoint = "/trending/movie/day";
         categoryName = "Trending Blockbuster";
         emojiHeader = "🔥";
-      } else if (/horror|scary|spooky|creepy|ghost/i.test(qLower)) {
-        endpoint = "/discover/movie";
-        categoryName = "Horror";
-        emojiHeader = "👻";
-      } else if (/comedy|funny|hilarious/i.test(qLower)) {
-        endpoint = "/discover/movie";
-        categoryName = "Hilarious Comedy";
-        emojiHeader = "🍿";
-      } else if (/anime|animation|animated/i.test(qLower)) {
-        endpoint = "/discover/movie";
-        categoryName = "Animation & Anime";
-        emojiHeader = "✨";
-      } else if (/thriller|suspense|crime|mystery/i.test(qLower)) {
-        endpoint = "/discover/movie";
-        categoryName = "Suspenseful Thriller";
-        emojiHeader = "🔍";
       } else if (userMessage) {
         endpoint = "/search/multi";
+        params.query = userMessage;
         categoryName = `"${userMessage}" Search`;
         emojiHeader = "🎬";
       }
-
-      const params: Record<string, any> = {};
-      if (endpoint === "/search/multi") params.query = userMessage;
 
       let tmdbData = await fetchTMDB(endpoint, params);
       if (!tmdbData?.results?.length && userMessage) {
