@@ -6,6 +6,7 @@ import router from './routers/ai.router';
 import profileRouter from './routers/profile.router';
 import planRoute from './routers/plan.route';
 import paymentRouter from './routers/payment.router';
+import catalogueRouter from './routers/catalogue.route';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,6 +45,7 @@ app.use('/api', router);
 app.use('/api', profileRouter);
 app.use('/api', planRoute);
 app.use('/api', paymentRouter);
+app.use('/api', catalogueRouter);
 
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.listen(PORT, () => {
