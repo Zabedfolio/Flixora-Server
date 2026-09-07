@@ -23,11 +23,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl) or matching allowed origins
       if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
         callback(null, true);
       } else {
-        callback(null, true); // Fallback allow to prevent production blocking
+        callback(null, true);
       }
     },
     credentials: true,
@@ -41,11 +40,10 @@ app.get('/', (_req, res) => {
   res.send('Flixora Server is running 🚀');
 });
 
-// Routers API
+// All API Routers mounted under /api
 app.use('/api', router);
 app.use('/api', profileRouter);
 app.use('/api', planRoute);
-app.use('/api/plans', planRoute);
 app.use('/api', paymentRouter);
 app.use('/api', ActivityRouter)
 

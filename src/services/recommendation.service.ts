@@ -70,41 +70,74 @@ const analyzeUserActivity = async (activity: any) => {
     this user is likely to enjoy.
 `;
 
-  const response = await genAI.models.generateContent({
-    model: "gemini-3.5-flash",
+  try {
+    const response = await genAI.models.generateContent({
+      model: "gemini-3.5-flash",
 
-    contents: [
-      {
-        role: "user",
+      contents: [
+        {
+          role: "user",
 
-        parts: [
-          {
-            text: prompt,
-          },
-        ],
+          parts: [
+            {
+              text: prompt,
+            },
+          ],
+        },
+      ],
+
+      config: {
+        systemInstruction,
+
+        responseMimeType: "application/json",
+
+        responseSchema,
+
+        thinkingConfig: {
+          thinkingLevel: "minimal" as any,
+        },
       },
-    ],
+    });
 
-    config: {
-      systemInstruction,
+    return JSON.parse(response.text || "{}");
+  } catch (error: any) {
+    console.error("Gemini recommendation error, attempting Kimi 3 AI fallback:", error.message || error);
+    try {
+      const apiKey = Config.KIMI_API_KEY;
+      const res = await fetch("https://api.moonshot.cn/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "moonshot-v1-8k",
+          messages: [
+            {
+              role: "system",
+              content: `${systemInstruction}\nReturn JSON object with keys: genres (array of strings e.g. ["Action", "Sci-Fi"]), keywords (array of strings).`,
+            },
+            { role: "user", content: prompt },
+          ],
+          temperature: 0.7,
+        }),
+      });
 
-      responseMimeType: "application/json",
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content || "{}";
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        return JSON.parse(jsonMatch ? jsonMatch[0] : text);
+      }
+    } catch (kimiErr: any) {
+      console.error("Kimi recommendation fallback error:", kimiErr.message || kimiErr);
+    }
 
-      responseSchema,
-
-      thinkingConfig: {
-        thinkingLevel: "minimal" as any,
-      },
-    },
-  });
-
-  console.log("📊 Gemini Token Usage (analyzeUserActivity):", {
-    promptTokens: response.usageMetadata?.promptTokenCount,
-    candidatesTokens: response.usageMetadata?.candidatesTokenCount,
-    totalTokens: response.usageMetadata?.totalTokenCount,
-  });
-
-  return JSON.parse(response.text || "{}");
+    return {
+      genres: ["Action", "Sci-Fi", "Drama"],
+      keywords: ["blockbuster", "popular"],
+    };
+  }
 };
 
 /* =========================================
