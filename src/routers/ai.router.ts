@@ -4,8 +4,8 @@ import { movieAssistant, getGenreRecommendations } from "../controllers/ai.contr
 const router = Router();
 
 /**
- * @route    /api/ai/chat
- * @desc     Response between AI and tmd filtering 
+ * @route    POST /api/ai/chat
+ * @desc     Generate AI chatbot response & save history to MongoDB
  * @access   public
  */
 router.post("/ai/chat", movieAssistant);

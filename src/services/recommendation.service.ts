@@ -70,33 +70,26 @@ const analyzeUserActivity = async (activity: any) => {
     this user is likely to enjoy.
 `;
 
-  const response = await genAI.models.generateContent({
-    model: "gemini-3.5-flash",
+  try {
+    const response = await genAI.models.generateContent({
+      model: "gemini-3.5-flash",
 
-    contents: [
-      {
-        role: "user",
+      contents: [
+        {
+          role: "user",
 
-        parts: [
-          {
-            text: prompt,
-          },
-        ],
-      },
-    ],
+          parts: [
+            {
+              text: prompt,
+            },
+          ],
+        },
+      ],
 
-    config: {
-      systemInstruction,
+      config: {
+        systemInstruction,
 
-      responseMimeType: "application/json",
-
-      responseSchema,
-
-      thinkingConfig: {
-        thinkingLevel: "minimal" as any,
-      },
-    },
-  });
+        responseMimeType: "application/json",
 
   console.log("📊 Gemini Token Usage (analyzeUserActivity):", {
     promptTokens: response.usageMetadata?.promptTokenCount,
