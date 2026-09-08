@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { movieAssistant, getChatHistory, clearChatHistory } from "../controllers/ai.controller";
+import { movieAssistant, getGenreRecommendations } from "../controllers/ai.controller";
 
 const router = Router();
 
@@ -11,17 +11,11 @@ const router = Router();
 router.post("/ai/chat", movieAssistant);
 
 /**
- * @route    GET /api/ai/chat/history
- * @desc     Retrieve chat history from MongoDB
+ * @route    /api/ai/recommendations
+ * @desc     Generate AI movie recommendations from watch history genres
  * @access   public
  */
-router.get("/ai/chat/history", getChatHistory);
-
-/**
- * @route    DELETE /api/ai/chat/history
- * @desc     Clear chat history from MongoDB
- * @access   public
- */
-router.delete("/api/ai/chat/history", clearChatHistory);
+router.post("/ai/recommendations", getGenreRecommendations);
 
 export default router;
+
