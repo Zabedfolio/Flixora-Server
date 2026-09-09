@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { movieAssistant, getChatHistory, clearChatHistory } from "../controllers/ai.controller";
+import { getChatHistory, clearChatHistory } from "../controllers/ai.controller";
+import { movieAssistant } from "../controllers/heroAi.controller";
 
 const router = Router();
 
