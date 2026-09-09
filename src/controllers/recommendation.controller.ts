@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { createRecommendation } from "../services/recommendation.service";
+import { MovieActivity } from "../models/movieActivity.model";
 
 export const getRecommendations = async (req: Request, res: Response) => {
   try {
