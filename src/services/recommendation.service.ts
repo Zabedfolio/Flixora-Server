@@ -138,6 +138,13 @@ const analyzeUserActivity = async (activity: any) => {
       keywords: ["blockbuster", "popular"],
     };
   }
+  console.log("📊 Gemini Token Usage (analyzeUserActivity):", {
+    promptTokens: response.usageMetadata?.promptTokenCount,
+    candidatesTokens: response.usageMetadata?.candidatesTokenCount,
+    totalTokens: response.usageMetadata?.totalTokenCount,
+  });
+
+  return JSON.parse(response.text || "{}");
 };
 
 /* =========================================

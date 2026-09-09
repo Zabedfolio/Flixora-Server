@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getChatHistory, clearChatHistory } from "../controllers/ai.controller";
+import { getChatHistory, clearChatHistory, getGenreRecommendations } from "../controllers/ai.controller";
 import { movieAssistant } from "../controllers/heroAi.controller";
 
 const router = Router();
@@ -24,6 +24,11 @@ router.get("/ai/chat/history", getChatHistory);
  * @access   public
  */
 router.delete("/api/ai/chat/history", clearChatHistory);
+//  * @route    /api/ai/recommendations
+//  * @desc     Generate AI movie recommendations from watch history genres
+//  * @access   public
+//  */
+router.post("/ai/recommendations", getGenreRecommendations);
 
 export default router;
 
