@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import axios from "axios";
 import Config from "../config/config";
 import { ChatHistory, IChatMessage } from "../models/chatHistory.model";
+import { generateMovieFilters } from "../services/heroGemini.services";
+import { searchMoviesForAI } from "../services/heroTmdb.services";
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
