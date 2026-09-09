@@ -6,6 +6,10 @@ import router from './routers/ai.router';
 import profileRouter from './routers/profile.router';
 import planRoute from './routers/plan.route';
 import paymentRouter from './routers/payment.router';
+import ActivityRouter from './routers/movieActivity.router';
+import analyticsRouter from './routers/revenueAnalytics.router';
+import transactionRouter from './routers/transaction.router';
+import promoCodeRouter from './routers/promoCode.router';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,11 +26,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl) or matching allowed origins
       if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
         callback(null, true);
       } else {
-        callback(null, true); // Fallback allow to prevent production blocking
+        callback(null, true);
       }
     },
     credentials: true,
@@ -40,12 +43,15 @@ app.get('/', (_req, res) => {
   res.send('Flixora Server is running 🚀');
 });
 
-// Routers API
+// All API Routers mounted under /api
 app.use('/api', router);
 app.use('/api', profileRouter);
 app.use('/api', planRoute);
-app.use('/api/plans', planRoute);
 app.use('/api', paymentRouter);
+app.use('/api', ActivityRouter);
+app.use('/api', analyticsRouter);
+app.use('/api', transactionRouter);
+app.use('/api', promoCodeRouter);
 
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.listen(PORT, () => {
