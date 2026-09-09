@@ -21,16 +21,18 @@ if (!process.env.TMDB_API_KEY)
 interface config {
     MONGODB_URI: string,
     TMDB_ACCESS_TOKEN: string,
-    GOOGLE_GEMINI_KEY:string,
-    TMDB_API_KEY:string,
+    GOOGLE_GEMINI_KEY: string,
+    KIMI_API_KEY: string,
+    TMDB_API_KEY: string,
 }
 
 
-const Config:config = {
+const Config: config = {
     MONGODB_URI: process.env.MONGODB_URI,
     TMDB_ACCESS_TOKEN: process.env.TMDB_ACCESS_TOKEN,
     GOOGLE_GEMINI_KEY: process.env.GOOGLE_GEMINI_KEY || '',
-    TMDB_API_KEY : process.env.TMDB_API_KEY
+    KIMI_API_KEY: process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY || '',
+    TMDB_API_KEY: process.env.TMDB_API_KEY
 }
 
 export default Config

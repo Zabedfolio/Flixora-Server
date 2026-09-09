@@ -59,7 +59,41 @@ const responseSchema = {
 
 
 /* =========================================
-   GEMINI MOVIE FILTER GENERATOR
+   KIMI (MOONSHOT AI) FALLBACK CALLER
+========================================= */
+const callKimiFallback = async (prompt: string) => {
+  const apiKey = Config.KIMI_API_KEY;
+  const res = await fetch("https://api.moonshot.cn/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "moonshot-v1-8k",
+      messages: [
+        {
+          role: "system",
+          content: `${systemInstruction}\nReturn valid JSON object with keys: mood (string), genres (array of strings), keywords (array of strings).`,
+        },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.7,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Kimi API Error: ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  const text = data.choices?.[0]?.message?.content || "{}";
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  return JSON.parse(jsonMatch ? jsonMatch[0] : text);
+};
+
+/* =========================================
+   GEMINI & KIMI FALLBACK MOVIE FILTER GENERATOR
 ========================================= */
 
 export const generateMovieFilters = async (prompt: string) => {
@@ -90,8 +124,17 @@ export const generateMovieFilters = async (prompt: string) => {
     return JSON.parse(response.text || "{}");
 
   } catch (error: any) {
-    console.error("Gemini Movie AI Error:", error);
+    console.error("Gemini Movie AI Error, attempting Kimi 3 AI fallback:", error.message || error);
 
-    throw error;
+    try {
+      return await callKimiFallback(prompt);
+    } catch (kimiErr: any) {
+      console.error("Kimi AI Fallback Error, using default cinema filters:", kimiErr.message || kimiErr);
+      return {
+        mood: "relaxing",
+        genres: ["Action", "Drama"],
+        keywords: ["movie"],
+      };
+    }
   }
 };
