@@ -7,6 +7,9 @@ import profileRouter from './routers/profile.router';
 import planRoute from './routers/plan.route';
 import paymentRouter from './routers/payment.router';
 import ActivityRouter from './routers/movieActivity.router';
+import analyticsRouter from './routers/revenueAnalytics.router';
+import transactionRouter from './routers/transaction.router';
+import promoCodeRouter from './routers/promoCode.router';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,7 +48,10 @@ app.use('/api', router);
 app.use('/api', profileRouter);
 app.use('/api', planRoute);
 app.use('/api', paymentRouter);
-app.use('/api', ActivityRouter)
+app.use('/api', ActivityRouter);
+app.use('/api', analyticsRouter);
+app.use('/api', transactionRouter);
+app.use('/api', promoCodeRouter);
 
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.listen(PORT, () => {
