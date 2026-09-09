@@ -28,7 +28,6 @@ export const movieAssistant = async (
        2. TMDB (Discover + Random Page/Sort + Shuffle)
     ============================== */
     const movies = await searchMoviesForAI(filters);
-    console.log("TMDB Movies:", movies);
 
     /* ==============================
        3. Response (Return 6 Movies)

@@ -94,9 +94,6 @@ export const clearChatHistory = async (req: Request, res: Response): Promise<voi
     res.status(500).json({ success: false, message: "Failed to clear chat history." });
   }
 };
-import { Request, Response } from "express";
-import { generateMovieFilters } from "../services/ai.services";
-import { searchMoviesForAI } from "../services/tmdb.services";
 import { getAIRecommendationsFromGenres } from "../services/recommendation.service";
 import { MovieActivity } from "../models/movieActivity.model";
 
