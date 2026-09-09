@@ -99,6 +99,12 @@ const analyzeUserActivity = async (activity: any) => {
       },
     });
 
+    console.log("📊 Gemini Token Usage (analyzeUserActivity):", {
+      promptTokens: response.usageMetadata?.promptTokenCount,
+      candidatesTokens: response.usageMetadata?.candidatesTokenCount,
+      totalTokens: response.usageMetadata?.totalTokenCount,
+    });
+
     return JSON.parse(response.text || "{}");
   } catch (error: any) {
     console.error("Gemini recommendation error, attempting Kimi 3 AI fallback:", error.message || error);
@@ -138,13 +144,6 @@ const analyzeUserActivity = async (activity: any) => {
       keywords: ["blockbuster", "popular"],
     };
   }
-  console.log("📊 Gemini Token Usage (analyzeUserActivity):", {
-    promptTokens: response.usageMetadata?.promptTokenCount,
-    candidatesTokens: response.usageMetadata?.candidatesTokenCount,
-    totalTokens: response.usageMetadata?.totalTokenCount,
-  });
-
-  return JSON.parse(response.text || "{}");
 };
 
 /* =========================================
