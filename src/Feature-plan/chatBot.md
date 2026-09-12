@@ -194,7 +194,7 @@ Keep all TMDB API logic inside a dedicated service.
 
 Example:
 
-src/services/tmdb.services.ts
+src/services/aiChat.tmdb.services.ts
 
 The AI service must NOT directly contain raw TMDB API logic.
 
