@@ -1,129 +1,93 @@
-import { Type, FunctionDeclaration } from '@google/genai';
+import { Type, FunctionDeclaration } from "@google/genai";
+import { aiChatTmdbService } from "./aiChatTmdbFunc.service";
 
-/**
- * 1. searchMedia
- * Search for movies, TV shows, or anime by title or keywords.
- */
+
 export const searchMediaDeclaration: FunctionDeclaration = {
-  name: 'searchMedia',
-  description: 'Search TMDB for movies, TV shows, or anime by title, franchise name, or keyword.',
+  name: "searchMedia",
+  description:
+    "Search TMDB for movies, TV shows, or anime by title, franchise name, or keyword.",
   parameters: {
     type: Type.OBJECT,
     properties: {
       query: {
         type: Type.STRING,
-        description: 'The search term, title, or keyword (e.g., "Interstellar", "Naruto", "Avengers").',
+        description: 'Search term (e.g., "Interstellar").',
       },
       mediaType: {
         type: Type.STRING,
-        description: 'Optional target media type. Allowed values: "movie", "tv", "all". Default is "all".',
+        description: 'Target media type: "movie", "tv", or "all".',
       },
     },
-    required: ['query'],
+    required: ["query"],
   },
 };
 
-/**
- * 2. discoverMovies
- * Discover movies or TV shows based on granular filters (genre, year, minimum rating, language).
- */
 export const discoverMoviesDeclaration: FunctionDeclaration = {
-  name: 'discoverMovies',
-  description: 'Discover movies or TV shows using filters like genre, release year, minimum vote average rating, and language.',
+  name: "discoverMovies",
+  description:
+    "Discover movies or TV shows using filters like genre, release year, min rating, and language.",
   parameters: {
     type: Type.OBJECT,
     properties: {
       mediaType: {
         type: Type.STRING,
-        description: 'Filter by "movie" or "tv". Default is "movie".',
+        description: 'Filter by "movie" or "tv".',
       },
       genre: {
         type: Type.STRING,
-        description: 'Genre identifier or name (e.g., "Action", "Sci-Fi", "Comedy", "Animation", "Drama").',
+        description: 'Genre name (e.g., "Action", "Sci-Fi").',
       },
-      year: {
-        type: Type.NUMBER,
-        description: 'Specific release year (e.g., 2020, 2023).',
-      },
+      year: { type: Type.NUMBER, description: "Specific release year." },
       minRating: {
         type: Type.NUMBER,
-        description: 'Minimum user rating threshold from 1.0 to 10.0 (e.g., 7.5).',
+        description: "Minimum rating threshold (1-10).",
       },
       language: {
         type: Type.STRING,
-        description: 'ISO-639-1 language code (e.g., "en", "ja" for Anime, "ko" for K-Drama).',
+        description: 'ISO language code (e.g., "en", "ja").',
       },
     },
-    required: [],
   },
 };
 
-/**
- * 3. getMovieDetails
- * Retrieve specific metadata for a single movie or TV show by TMDB ID.
- */
 export const getMovieDetailsDeclaration: FunctionDeclaration = {
-  name: 'getMovieDetails',
-  description: 'Fetch detailed information about a specific movie or TV show using its TMDB ID, including plot overview, release date, runtime, genres, and main cast.',
+  name: "getMovieDetails",
+  description:
+    "Fetch detailed info about a specific movie or TV show using its TMDB ID.",
   parameters: {
     type: Type.OBJECT,
     properties: {
-      id: {
-        type: Type.NUMBER,
-        description: 'The TMDB ID of the movie or TV show.',
-      },
-      mediaType: {
-        type: Type.STRING,
-        description: 'Media type: "movie" or "tv". Default is "movie".',
-      },
+      id: { type: Type.NUMBER, description: "TMDB ID." },
+      mediaType: { type: Type.STRING, description: '"movie" or "tv".' },
     },
-    required: ['id'],
+    required: ["id"],
   },
 };
 
-/**
- * 4. getTrending
- * Retrieve current trending movies or TV shows.
- */
 export const getTrendingDeclaration: FunctionDeclaration = {
-  name: 'getTrending',
-  description: 'Get list of currently trending movies, TV shows, or anime.',
+  name: "getTrending",
+  description: "Get list of currently trending movies, TV shows, or anime.",
   parameters: {
     type: Type.OBJECT,
     properties: {
-      mediaType: {
-        type: Type.STRING,
-        description: 'Target type: "movie", "tv", or "all". Default is "all".',
-      },
-      timeWindow: {
-        type: Type.STRING,
-        description: 'Time period for trends: "day" or "week". Default is "week".',
-      },
+      mediaType: { type: Type.STRING, description: '"movie", "tv", or "all".' },
+      timeWindow: { type: Type.STRING, description: '"day" or "week".' },
     },
-    required: [],
   },
 };
 
-/**
- * 5. searchPerson
- * Search for actors, directors, or crew members and retrieve their known work.
- */
 export const searchPersonDeclaration: FunctionDeclaration = {
-  name: 'searchPerson',
-  description: 'Search for actors, directors, writers, or crew members to find their biography and top filmography/TV credits.',
+  name: "searchPerson",
+  description: "Search for actors, directors, or writers.",
   parameters: {
     type: Type.OBJECT,
     properties: {
-      name: {
-        type: Type.STRING,
-        description: 'Full name of the person (e.g., "Christopher Nolan", "Leonardo DiCaprio").',
-      },
+      name: { type: Type.STRING, description: "Full name of the person." },
     },
-    required: ['name'],
+    required: ["name"],
   },
 };
 
-// Bundle all declarations into Flixora Tools array
 export const flixoraTools = [
   {
     functionDeclarations: [
@@ -135,3 +99,28 @@ export const flixoraTools = [
     ],
   },
 ];
+
+export async function executeTMDBTool(name: string, args: any) {
+  try {
+    switch (name) {
+      case "searchMedia":
+        return await aiChatTmdbService.searchMedia(args.query, args.mediaType);
+      case "discoverMovies":
+        return await aiChatTmdbService.discoverMovies(args);
+      case "getMovieDetails":
+        return await aiChatTmdbService.getMovieDetails(args.id, args.mediaType);
+      case "getTrending":
+        return await aiChatTmdbService.getTrending(
+          args.mediaType,
+          args.timeWindow,
+        );
+      case "searchPerson":
+        return await aiChatTmdbService.searchPerson(args.name);
+      default:
+        throw new Error(`Unrecognized tool: ${name}`);
+    }
+  } catch (error: any) {
+    console.error(`Tool Execution Error [${name}]:`, error?.message || error);
+    return [];
+  }
+}
