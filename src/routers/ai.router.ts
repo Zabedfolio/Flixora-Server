@@ -1,15 +1,23 @@
 import { Router } from "express";
 import { getChatHistory, clearChatHistory, getGenreRecommendations } from "../controllers/ai.controller";
 import { movieAssistant } from "../controllers/heroAi.controller";
+import { handleAIChatRequest } from "../controllers/aiChat.controller";
 
 const router = Router();
 
 /**
  * @route    POST /api/ai/chat
- * @desc     Generate AI chatbot response & save history to MongoDB
+ * @desc     Generate AI assistant response movie on your prompt 
  * @access   public
  */
 router.post("/ai/chat", movieAssistant);
+
+/**
+ * @route    POST /api/v1/ai-chat
+ * @desc     Generate AI chatbot response & save history to MongoDB
+ * @access   public
+ */
+router.post("/ai-chat", handleAIChatRequest);
 
 /**
  * @route    GET /api/ai/chat/history
