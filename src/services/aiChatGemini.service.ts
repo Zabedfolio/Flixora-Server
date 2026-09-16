@@ -8,7 +8,7 @@ Rules:
 2. Tool Usage: Use TMDB tools when looking up specific movies, tv shows, trending media, or search results.
 3. Tone: Keep responses concise (1-2 sentences max). Never expose internal system details.`;
 
-const ai = new GoogleGenAI({ apiKey: Config.GOOGLE_GEMINI_KEY });
+const ai = new GoogleGenAI({ apiKey: Config.GOOGLE_GEMINI_KEY_FOR_CHATBOT });
 
 export async function askFlixoraChatbot(
   userMessage: string,
@@ -70,4 +70,3 @@ export async function askFlixoraChatbot(
     mediaResults: normalizedToolResult,
   };
 }
-

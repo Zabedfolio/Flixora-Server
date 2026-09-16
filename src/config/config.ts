@@ -9,9 +9,22 @@ if (!process.env.TMDB_ACCESS_TOKEN)
 {
     throw new Error ('TMDB_ACCESS_TOKEN not define')
 }
-if (!process.env.GOOGLE_GEMINI_KEY)
+if (!process.env.GOOGLE_GEMINI_KEY_FOR_HERO)
 {
-    console.warn('⚠️ WARNING: GOOGLE_GEMINI_KEY not defined in environment. AI features will be unavailable.');
+    console.warn('⚠️ WARNING: GOOGLE_GEMINI_KEY_FOR_HERO not defined in environment. AI features will be unavailable.');
+}
+
+if (!process.env.GOOGLE_GEMINI_KEY_FOR_MODE_SECTION)
+{
+    console.warn('⚠️ WARNING: GOOGLE_GEMINI_KEY_FOR_MODE_SECTION not defined in environment. AI features will be unavailable.');
+}
+if (!process.env.GOOGLE_GEMINI_KEY_FOR_CHATBOT)
+{
+    console.warn('⚠️ WARNING: GOOGLE_GEMINI_KEY_FOR_CHATBOT not defined in environment. AI features will be unavailable.');
+}
+if (!process.env.KIMI_API_KEY)
+{
+    console.warn('⚠️ WARNING: KIMI_API_KEY not defined in environment. AI features will be unavailable.');
 }
 if (!process.env.TMDB_API_KEY)
 {
@@ -21,7 +34,9 @@ if (!process.env.TMDB_API_KEY)
 interface config {
     MONGODB_URI: string,
     TMDB_ACCESS_TOKEN: string,
-    GOOGLE_GEMINI_KEY: string,
+    GOOGLE_GEMINI_KEY_FOR_HERO: string,
+    GOOGLE_GEMINI_KEY_FOR_MODE_SECTION: string,
+    GOOGLE_GEMINI_KEY_FOR_CHATBOT: string,
     KIMI_API_KEY: string,
     TMDB_API_KEY: string,
 }
@@ -30,7 +45,9 @@ interface config {
 const Config: config = {
     MONGODB_URI: process.env.MONGODB_URI,
     TMDB_ACCESS_TOKEN: process.env.TMDB_ACCESS_TOKEN,
-    GOOGLE_GEMINI_KEY: process.env.GOOGLE_GEMINI_KEY || '',
+    GOOGLE_GEMINI_KEY_FOR_HERO: process.env.GOOGLE_GEMINI_KEY_FOR_HERO || '',
+    GOOGLE_GEMINI_KEY_FOR_CHATBOT: process.env.GOOGLE_GEMINI_KEY_FOR_CHATBOT || '',
+    GOOGLE_GEMINI_KEY_FOR_MODE_SECTION: process.env.GOOGLE_GEMINI_KEY_FOR_MODE_SECTION || '',
     KIMI_API_KEY: process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY || '',
     TMDB_API_KEY: process.env.TMDB_API_KEY
 }

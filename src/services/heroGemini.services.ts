@@ -2,7 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import Config from "../config/config";
 
 const genAI = new GoogleGenAI({
-  apiKey: Config.GOOGLE_GEMINI_KEY,
+  apiKey: Config.GOOGLE_GEMINI_KEY_FOR_HERO,
 });
 
 /* =========================================
@@ -65,6 +65,12 @@ export const generateMovieFilters = async (prompt: string) => {
         responseMimeType: "application/json",
         responseSchema,
       },
+    });
+
+    console.log("📊 Gemini Token Usage (recommendation):", {
+      promptTokens: response.usageMetadata?.promptTokenCount,
+      candidatesTokens: response.usageMetadata?.candidatesTokenCount,
+      totalTokens: response.usageMetadata?.totalTokenCount,
     });
 
     const parsedData = JSON.parse(response.text || "{}");
