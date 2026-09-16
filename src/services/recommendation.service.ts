@@ -299,7 +299,7 @@ export const getAIRecommendationsFromGenres = async (userGenres: string[]) => {
     } catch (err: any) {
       console.warn(
         "Gemini AI genre recommendation error, attempting Kimi AI fallback:",
-        err.message || err,
+        
       );
       try {
         const apiKey = Config.KIMI_API_KEY;
