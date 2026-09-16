@@ -13,10 +13,13 @@ export async function handleAIChatRequest(req: Request, res: Response) {
     }
 
     const formattedHistory = Array.isArray(history) ? history : [];
+    // ‍send last 2 message from the chat box as a prompt
+    const MAX_HISTORY_MESSAGES = 2;
+    const trimmedHistory = formattedHistory.slice(-MAX_HISTORY_MESSAGES);
 
     // Call Gemini Engine + TMDB Tool Execution
-    const result = await askFlixoraChatbot(message.trim(), formattedHistory);
-    
+    const result = await askFlixoraChatbot(message.trim(), trimmedHistory);
+
     return res.status(200).json({
       success: true,
       data: {
