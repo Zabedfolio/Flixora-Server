@@ -53,7 +53,7 @@ const responseSchema = {
 export const generateMovieFilters = async (prompt: string) => {
   try {
     const response = await genAI.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-1.5-flash",
       contents: [
         {
           role: "user",

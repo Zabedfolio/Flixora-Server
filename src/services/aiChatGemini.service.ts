@@ -14,7 +14,7 @@ export async function askFlixoraChatbot(
   userMessage: string,
   history: any[] = [],
 ) {
-  const model = "gemini-3.5-flash";
+  const model = "gemini-1.5-flash";
 
   // Token Optimization: Limit incoming history to last 4 turns (2 user, 2 model)
   const MAX_HISTORY_TURNS = 4;
@@ -53,15 +53,17 @@ export async function askFlixoraChatbot(
   // Branch B: Tool execution requested -> Execute tool & BYPASS Stage 2 Gemini API Call
   // This saves ~50% API calls and output tokens since UI cards render full details
   const call = functionCalls[0];
-  const normalizedToolResult = await executeTMDBTool(call.name, call.args);
+  const toolName = call.name || "";
+  const toolArgs = call.args || {};
+  const normalizedToolResult = await executeTMDBTool(toolName, toolArgs);
 
   let responseText = "Here are the top matches I found on Flixora:";
   if (normalizedToolResult.length === 0) {
     responseText = "I couldn't find any matching titles on TMDB.";
-  } else if (call.name === "getTrending") {
+  } else if (toolName === "getTrending") {
     responseText = "Here are the top trending titles right now:";
-  } else if (call.name === "searchPerson") {
-    responseText = `Here are the top matches for ${call.args.name || "your query"}:`;
+  } else if (toolName === "searchPerson") {
+    responseText = `Here are the top matches for ${(toolArgs as any).name || "your query"}:`;
   }
 
   return {

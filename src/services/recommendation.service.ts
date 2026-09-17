@@ -72,7 +72,7 @@ const analyzeUserActivity = async (activity: any) => {
 
   try {
     const response = await genAI.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-1.5-flash",
 
       contents: [
         {
@@ -256,7 +256,7 @@ export const getAIRecommendationsFromGenres = async (userGenres: string[]) => {
       `;
 
       const response = await genAI.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-1.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: {
           systemInstruction:
