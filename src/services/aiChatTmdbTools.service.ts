@@ -1,7 +1,6 @@
 import { Type, FunctionDeclaration } from "@google/genai";
 import { aiChatTmdbService } from "./aiChatTmdbFunc.service";
 
-
 export const searchMediaDeclaration: FunctionDeclaration = {
   name: "searchMedia",
   description:

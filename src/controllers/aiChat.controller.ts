@@ -20,10 +20,10 @@ export async function handleAIChatRequest(req: Request, res: Response) {
     // Call Gemini Engine + TMDB Tool Execution
     const result = await askFlixoraChatbot(message.trim(), trimmedHistory);
 
-    return res.status(200).json({
+    return res.status(200).json({ 
       success: true,
       data: {
-        message: result.text,
+        message: result.text, 
         movies: result.mediaResults || [],
       },
     });
