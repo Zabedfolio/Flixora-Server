@@ -57,7 +57,7 @@ app.use('/api', promoCodeRouter);
 app.use('/api', careerRouter);
 app.use('/api', contactRouter);
 
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+if (process.env.RENDER || !process.env.VERCEL || process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
