@@ -10,6 +10,8 @@ import ActivityRouter from './routers/movieActivity.router';
 import analyticsRouter from './routers/revenueAnalytics.router';
 import transactionRouter from './routers/transaction.router';
 import promoCodeRouter from './routers/promoCode.router';
+import careerRouter from './routers/career.router';
+import contactRouter from './routers/contact.router';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -52,6 +54,8 @@ app.use('/api', ActivityRouter);
 app.use('/api', analyticsRouter);
 app.use('/api', transactionRouter);
 app.use('/api', promoCodeRouter);
+app.use('/api', careerRouter);
+app.use('/api', contactRouter);
 
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.listen(PORT, () => {
